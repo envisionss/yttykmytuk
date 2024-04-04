@@ -1,0 +1,57 @@
+local imgui = Instance.new("ScreenGui")
+imgui.Name = "imgui"
+imgui.Parent = game.CoreGui
+
+local frame = Instance.new("Frame")
+frame.Name = "window"
+frame.Parent = imgui
+frame.BackgroundColor3 = Color3.new(0, 0, 0)
+frame.Size = UDim2.new(0, 200, 0, 200)
+frame.Position = UDim2.new(0.5, -100, 0.5, -100)
+
+local topbar = Instance.new("Frame")
+topbar.Name = "TopBar" 
+topbar.Parent = frame
+topbar.BackgroundColor3 = Color3.fromRGB(23, 23, 23)
+topbar.Size = UDim2.new(1, 0, 0, 20)
+topbar.Position = UDim2.new(0, 0, 0, 0)
+
+local draggable = {}
+draggable.__index = draggable
+
+function draggable.new(frame)
+  local self = setmetatable({}, draggable)
+  self.frame = frame
+  self.dragging = false
+  self.dragInput = nil
+  self.startPos = nil
+
+  frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+      self.dragging = true
+      self.dragInput = input
+      self.startPos = self.frame.Position
+    end
+  end)
+
+  frame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+      self.dragging = false
+    end
+  end)
+
+  inputService.InputChanged:Connect(function(input)
+    if self.dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+      local delta = input.Position - self.dragInput.Position
+      self.frame.Position = UDim2.new(self.startPos.X.Scale, self.startPos.X.Offset + delta.X, self.startPos.Y.Scale, self.startPos.Y.Offset + delta.Y) 
+    end
+  end)
+
+  return self
+end
+
+local draggableTopBar = draggable.new(topbar)
+
+function draggableTopBar:onDrag(delta)
+  frame.Position = UDim2.new(self.startPos.X.Scale, self.startPos.X.Offset + delta.X, self.startPos.Y.Scale, self.startPos.Y.Offset + delta.Y)
+end
